@@ -1,0 +1,2 @@
+main.py --output /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/5shot/eval/2303953 --dataset mini_imagenet --epoch 100 --lr 5e-5 --arch dino_small_patch16 --device cuda:0 --nSupport 5 --fp16 --resume /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/5shot/train/2219783/best.pth --nEpisode 600 --eval
+{"n_ways": 5.0, "n_imgs": 100.0, "acc1": 98.16889110565185, "acc5": 100.0, "loss": 0.09678832069194565, "acc_std": 2.05317759513855, "epoch": -1}

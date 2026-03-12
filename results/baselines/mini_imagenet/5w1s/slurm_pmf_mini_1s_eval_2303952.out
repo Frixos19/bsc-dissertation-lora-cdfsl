@@ -1,0 +1,85 @@
+== Job info ==
+Host: nid010388
+Start: Fri Feb 13 01:11:37 PM UTC 2026
+Submit dir: /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl
+CUDA_VISIBLE_DEVICES=0
+Python: /home/u5hv/frixos.u5hv/miniforge3/envs/pmf/bin/python
+Python 3.10.13
+Symlinks created:
+  data -> /lus/lfs1aip2/scratch/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/data
+  checkpoints -> /lus/lfs1aip2/scratch/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/checkpoints
+  logs -> /lus/lfs1aip2/scratch/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs
+PMF_DIR=/scratch/u5hv/frixos.u5hv/pmf_cvpr22
+OUTDIR=/home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/1shot/eval/2303952
+CKPT=/home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/1shot/train/2224852/best.pth
+Not using distributed mode
+Namespace(batch_size=1, num_classes=1000, epochs=100, fp16=True, output_dir='/home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/1shot/eval/2303952', device='cuda:0', seed=0, data_path='/datasets01/imagenet_full_size/061417/', pretrained_checkpoint_path='.', dataset='mini_imagenet', nClsEpisode=5, nSupport=1, nQuery=15, nValEpisode=120, nEpisode=600, image_size=128, base_sources=['aircraft', 'cu_birds', 'dtd', 'fungi', 'ilsvrc_2012', 'omniglot', 'quickdraw', 'vgg_flower'], val_sources=['aircraft', 'cu_birds', 'dtd', 'fungi', 'ilsvrc_2012', 'omniglot', 'quickdraw', 'vgg_flower'], test_sources=['traffic_sign', 'mscoco', 'ilsvrc_2012', 'omniglot', 'aircraft', 'cu_birds', 'dtd', 'quickdraw', 'fungi', 'vgg_flower'], shuffle=True, train_transforms=['random_resized_crop', 'jitter', 'random_flip', 'to_tensor', 'normalize'], test_transforms=['resize', 'center_crop', 'to_tensor', 'normalize'], num_ways=None, num_support=None, num_query=None, min_ways=5, max_ways_upper_bound=50, max_num_query=10, max_support_set_size=500, max_support_size_contrib_per_class=100, min_examples_in_class=0, min_log_weight=-0.6931471805599453, max_log_weight=0.6931471805599453, ignore_bilevel_ontology=False, ignore_dag_ontology=False, ignore_hierarchy_probability=0.0, test_n_way=5, n_shot=5, cdfsl_domains=['EuroSAT', 'ISIC', 'CropDisease', 'ChestX'], arch='dino_small_patch16', patch_size=16, pretrained_weights='', checkpoint_key='teacher', unused_params=False, no_pretrain=False, deploy='vanilla', num_adapters=1, ada_steps=40, ada_lr=0.05, aug_prob=0.9, aug_types=['color', 'translation'], img_size=224, drop=0.0, drop_path=0.1, model_ema=False, model_ema_decay=0.99996, model_ema_force_cpu=False, opt='adamw', opt_eps=1e-08, opt_betas=None, clip_grad=None, momentum=0.9, weight_decay=0.05, sched='cosine', lr=5e-05, lr_noise=None, lr_noise_pct=0.67, lr_noise_std=1.0, warmup_lr=1e-06, min_lr=1e-06, decay_epochs=30, warmup_epochs=5, cooldown_epochs=10, patience_epochs=10, decay_rate=0.1, color_jitter=0.4, aa='rand-m9-mstd0.5-inc1', smoothing=0.0, train_interpolation='bicubic', repeated_aug=False, reprob=0.25, remode='pixel', recount=1, resplit=False, mixup=0.0, cutmix=0.0, cutmix_minmax=None, mixup_prob=1.0, mixup_switch_prob=0.5, mixup_mode='batch', teacher_model='regnety_160', teacher_path='', distillation_type='none', distillation_alpha=0.5, distillation_tau=1.0, resume='/home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/1shot/train/2224852/best.pth', start_epoch=0, eval=True, dist_eval=False, num_workers=10, pin_mem=True, world_size=1, dist_url='env://', distributed=False)
+Creating model: ProtoNet dino_small_patch16
+Pretrained weights found at dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth
+number of params: 21665666
+Resume from /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/mini_imagenet/1shot/train/2224852/best.pth at epoch 0.
+Test:  [  0/600]  eta: 0:13:27  n_ways: 5  n_imgs: 80  acc1: 92.0000 (92.0000)  acc5: 100.0000 (100.0000)  loss: 0.2250 (0.2250)  time: 1.3455  data: 0.2755  max mem: 441
+Test:  [ 10/600]  eta: 0:02:57  n_ways: 5  n_imgs: 80  acc1: 97.3333 (96.1212)  acc5: 100.0000 (100.0000)  loss: 0.2008 (0.2464)  time: 0.3006  data: 0.1831  max mem: 441
+Test:  [ 20/600]  eta: 0:01:51  n_ways: 5  n_imgs: 80  acc1: 97.3333 (94.4762)  acc5: 100.0000 (100.0000)  loss: 0.2008 (0.2488)  time: 0.1342  data: 0.1114  max mem: 441
+Test:  [ 30/600]  eta: 0:01:23  n_ways: 5  n_imgs: 80  acc1: 97.3333 (95.0538)  acc5: 100.0000 (100.0000)  loss: 0.2102 (0.2377)  time: 0.0624  data: 0.0401  max mem: 441
+Test:  [ 40/600]  eta: 0:01:11  n_ways: 5  n_imgs: 80  acc1: 96.0000 (94.5041)  acc5: 100.0000 (100.0000)  loss: 0.2165 (0.2523)  time: 0.0591  data: 0.0380  max mem: 441
+Test:  [ 50/600]  eta: 0:01:07  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.4118)  acc5: 100.0000 (100.0000)  loss: 0.2524 (0.2691)  time: 0.0838  data: 0.0624  max mem: 441
+Test:  [ 60/600]  eta: 0:01:13  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.9672)  acc5: 100.0000 (100.0000)  loss: 0.2524 (0.2588)  time: 0.1544  data: 0.1319  max mem: 441
+Test:  [ 70/600]  eta: 0:01:06  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.8779)  acc5: 100.0000 (100.0000)  loss: 0.2086 (0.2624)  time: 0.1317  data: 0.1084  max mem: 441
+Test:  [ 80/600]  eta: 0:01:00  n_ways: 5  n_imgs: 80  acc1: 96.0000 (94.0905)  acc5: 100.0000 (100.0000)  loss: 0.2093 (0.2584)  time: 0.0526  data: 0.0291  max mem: 441
+Test:  [ 90/600]  eta: 0:00:55  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.6117)  acc5: 100.0000 (100.0000)  loss: 0.2093 (0.2676)  time: 0.0518  data: 0.0286  max mem: 441
+Test:  [100/600]  eta: 0:00:51  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.7030)  acc5: 100.0000 (100.0000)  loss: 0.2616 (0.2669)  time: 0.0563  data: 0.0329  max mem: 441
+Test:  [110/600]  eta: 0:00:48  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.4895)  acc5: 100.0000 (100.0000)  loss: 0.2457 (0.2700)  time: 0.0597  data: 0.0368  max mem: 441
+Test:  [120/600]  eta: 0:00:45  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.4545)  acc5: 100.0000 (100.0000)  loss: 0.2552 (0.2704)  time: 0.0545  data: 0.0321  max mem: 441
+Test:  [130/600]  eta: 0:00:46  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.4962)  acc5: 100.0000 (100.0000)  loss: 0.2529 (0.2682)  time: 0.0919  data: 0.0694  max mem: 441
+Test:  [140/600]  eta: 0:00:43  n_ways: 5  n_imgs: 80  acc1: 96.0000 (93.4184)  acc5: 100.0000 (100.0000)  loss: 0.2349 (0.2683)  time: 0.0905  data: 0.0680  max mem: 441
+Test:  [150/600]  eta: 0:00:41  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3598)  acc5: 100.0000 (100.0000)  loss: 0.2935 (0.2708)  time: 0.0446  data: 0.0221  max mem: 441
+Test:  [160/600]  eta: 0:00:39  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3085)  acc5: 100.0000 (100.0000)  loss: 0.2943 (0.2730)  time: 0.0554  data: 0.0332  max mem: 441
+Test:  [170/600]  eta: 0:00:38  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3723)  acc5: 100.0000 (100.0000)  loss: 0.2554 (0.2719)  time: 0.0715  data: 0.0499  max mem: 441
+Test:  [180/600]  eta: 0:00:36  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.2449)  acc5: 100.0000 (100.0000)  loss: 0.2632 (0.2743)  time: 0.0662  data: 0.0445  max mem: 441
+Test:  [190/600]  eta: 0:00:35  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3403)  acc5: 100.0000 (100.0000)  loss: 0.2239 (0.2706)  time: 0.0535  data: 0.0308  max mem: 441
+Test:  [200/600]  eta: 0:00:33  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.2869)  acc5: 100.0000 (100.0000)  loss: 0.2239 (0.2704)  time: 0.0477  data: 0.0241  max mem: 441
+Test:  [210/600]  eta: 0:00:31  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3523)  acc5: 100.0000 (100.0000)  loss: 0.2320 (0.2700)  time: 0.0441  data: 0.0208  max mem: 441
+Test:  [220/600]  eta: 0:00:30  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.4238)  acc5: 100.0000 (100.0000)  loss: 0.1719 (0.2674)  time: 0.0472  data: 0.0248  max mem: 441
+Test:  [230/600]  eta: 0:00:29  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.3045)  acc5: 100.0000 (100.0000)  loss: 0.2058 (0.2702)  time: 0.0473  data: 0.0253  max mem: 441
+Test:  [240/600]  eta: 0:00:27  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1784)  acc5: 100.0000 (100.0000)  loss: 0.2743 (0.2718)  time: 0.0440  data: 0.0220  max mem: 441
+Test:  [250/600]  eta: 0:00:26  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1527)  acc5: 100.0000 (100.0000)  loss: 0.3200 (0.2730)  time: 0.0469  data: 0.0247  max mem: 441
+Test:  [260/600]  eta: 0:00:25  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1699)  acc5: 100.0000 (100.0000)  loss: 0.2946 (0.2732)  time: 0.0460  data: 0.0237  max mem: 441
+Test:  [270/600]  eta: 0:00:24  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0037)  acc5: 100.0000 (100.0000)  loss: 0.3170 (0.2774)  time: 0.0422  data: 0.0200  max mem: 441
+Test:  [280/600]  eta: 0:00:23  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0724)  acc5: 100.0000 (100.0000)  loss: 0.3057 (0.2757)  time: 0.0458  data: 0.0239  max mem: 441
+Test:  [290/600]  eta: 0:00:22  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0126)  acc5: 100.0000 (100.0000)  loss: 0.2836 (0.2777)  time: 0.0453  data: 0.0235  max mem: 441
+Test:  [300/600]  eta: 0:00:22  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0055)  acc5: 100.0000 (100.0000)  loss: 0.2798 (0.2774)  time: 0.0960  data: 0.0749  max mem: 441
+Test:  [310/600]  eta: 0:00:21  n_ways: 5  n_imgs: 80  acc1: 94.6667 (92.9904)  acc5: 100.0000 (100.0000)  loss: 0.2438 (0.2782)  time: 0.0996  data: 0.0786  max mem: 441
+Test:  [320/600]  eta: 0:00:20  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0218)  acc5: 100.0000 (100.0000)  loss: 0.2542 (0.2779)  time: 0.0453  data: 0.0240  max mem: 441
+Test:  [330/600]  eta: 0:00:19  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0312)  acc5: 100.0000 (100.0000)  loss: 0.2471 (0.2773)  time: 0.0472  data: 0.0258  max mem: 441
+Test:  [340/600]  eta: 0:00:18  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1378)  acc5: 100.0000 (100.0000)  loss: 0.2110 (0.2750)  time: 0.0500  data: 0.0286  max mem: 441
+Test:  [350/600]  eta: 0:00:17  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0978)  acc5: 100.0000 (100.0000)  loss: 0.2152 (0.2754)  time: 0.0443  data: 0.0230  max mem: 441
+Test:  [360/600]  eta: 0:00:16  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0711)  acc5: 100.0000 (100.0000)  loss: 0.2202 (0.2751)  time: 0.0406  data: 0.0193  max mem: 441
+Test:  [370/600]  eta: 0:00:16  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0350)  acc5: 100.0000 (100.0000)  loss: 0.2414 (0.2759)  time: 0.1219  data: 0.1002  max mem: 441
+Test:  [380/600]  eta: 0:00:15  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0604)  acc5: 100.0000 (100.0000)  loss: 0.2545 (0.2752)  time: 0.1222  data: 0.0996  max mem: 441
+Test:  [390/600]  eta: 0:00:14  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0435)  acc5: 100.0000 (100.0000)  loss: 0.2392 (0.2757)  time: 0.0406  data: 0.0178  max mem: 441
+Test:  [400/600]  eta: 0:00:14  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0507)  acc5: 100.0000 (100.0000)  loss: 0.2237 (0.2757)  time: 0.0908  data: 0.0683  max mem: 441
+Test:  [410/600]  eta: 0:00:13  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0479)  acc5: 100.0000 (100.0000)  loss: 0.2200 (0.2755)  time: 0.0903  data: 0.0678  max mem: 441
+Test:  [420/600]  eta: 0:00:12  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0863)  acc5: 100.0000 (100.0000)  loss: 0.2390 (0.2754)  time: 0.0400  data: 0.0173  max mem: 441
+Test:  [430/600]  eta: 0:00:12  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0951)  acc5: 100.0000 (100.0000)  loss: 0.2484 (0.2755)  time: 0.1177  data: 0.0954  max mem: 441
+Test:  [440/600]  eta: 0:00:11  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1338)  acc5: 100.0000 (100.0000)  loss: 0.2056 (0.2743)  time: 0.1173  data: 0.0948  max mem: 441
+Test:  [450/600]  eta: 0:00:10  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1116)  acc5: 100.0000 (100.0000)  loss: 0.2117 (0.2746)  time: 0.0395  data: 0.0165  max mem: 441
+Test:  [460/600]  eta: 0:00:10  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1106)  acc5: 100.0000 (100.0000)  loss: 0.2231 (0.2749)  time: 0.0423  data: 0.0196  max mem: 441
+Test:  [470/600]  eta: 0:00:09  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1323)  acc5: 100.0000 (100.0000)  loss: 0.2524 (0.2750)  time: 0.0567  data: 0.0348  max mem: 441
+Test:  [480/600]  eta: 0:00:08  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1143)  acc5: 100.0000 (100.0000)  loss: 0.2492 (0.2751)  time: 0.0544  data: 0.0321  max mem: 441
+Test:  [490/600]  eta: 0:00:07  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1568)  acc5: 100.0000 (100.0000)  loss: 0.2253 (0.2751)  time: 0.0423  data: 0.0195  max mem: 441
+Test:  [500/600]  eta: 0:00:07  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.0858)  acc5: 100.0000 (100.0000)  loss: 0.2602 (0.2769)  time: 0.0413  data: 0.0189  max mem: 441
+Test:  [510/600]  eta: 0:00:06  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1246)  acc5: 100.0000 (100.0000)  loss: 0.2500 (0.2763)  time: 0.0383  data: 0.0157  max mem: 441
+Test:  [520/600]  eta: 0:00:05  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1209)  acc5: 100.0000 (100.0000)  loss: 0.2429 (0.2762)  time: 0.0412  data: 0.0185  max mem: 441
+Test:  [530/600]  eta: 0:00:04  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1500)  acc5: 100.0000 (100.0000)  loss: 0.2122 (0.2756)  time: 0.0410  data: 0.0183  max mem: 441
+Test:  [540/600]  eta: 0:00:04  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1534)  acc5: 100.0000 (100.0000)  loss: 0.2196 (0.2754)  time: 0.0379  data: 0.0152  max mem: 441
+Test:  [550/600]  eta: 0:00:03  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1809)  acc5: 100.0000 (100.0000)  loss: 0.2196 (0.2748)  time: 0.0404  data: 0.0177  max mem: 441
+Test:  [560/600]  eta: 0:00:02  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1741)  acc5: 100.0000 (100.0000)  loss: 0.2750 (0.2757)  time: 0.0409  data: 0.0185  max mem: 441
+Test:  [570/600]  eta: 0:00:01  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1746)  acc5: 100.0000 (100.0000)  loss: 0.3033 (0.2756)  time: 0.0380  data: 0.0161  max mem: 441
+Test:  [580/600]  eta: 0:00:01  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.1933)  acc5: 100.0000 (100.0000)  loss: 0.2769 (0.2757)  time: 0.1967  data: 0.1751  max mem: 441
+Test:  [590/600]  eta: 0:00:00  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.2589)  acc5: 100.0000 (100.0000)  loss: 0.2113 (0.2741)  time: 0.1985  data: 0.1775  max mem: 441
+Test:  [599/600]  eta: 0:00:00  n_ways: 5  n_imgs: 80  acc1: 94.6667 (93.2578)  acc5: 100.0000 (100.0000)  loss: 0.2069 (0.2743)  time: 0.0410  data: 0.0207  max mem: 441
+Test: Total time: 0:00:42 (0.0706 s / it)
+* Acc@1 93.258 Acc@5 100.000 loss 0.274
+Accuracy of the network on dataset_val: 93.3%
+End: Fri Feb 13 01:12:38 PM UTC 2026

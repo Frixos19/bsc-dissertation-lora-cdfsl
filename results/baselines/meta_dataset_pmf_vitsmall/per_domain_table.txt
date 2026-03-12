@@ -1,0 +1,15 @@
+Domain        dino_small_patch16      lr
+------------  --------------------  ----
+traffic_sign  90.07 +- 0.67         0.01
+mscoco        59.54 +- 0.97         0.00
+ilsvrc_2012   73.01 +- 0.76         0.00
+omniglot      92.00 +- 0.60         0.00
+aircraft      89.55 +- 0.46         0.00
+cu_birds      91.05 +- 0.44         0.00
+dtd           85.64 +- 0.64         0.00
+quickdraw     79.36 +- 0.65         0.00
+fungi         75.17 +- 0.98         0.00
+vgg_flower    95.19 +- 0.39         0.00
+
+
+End: Wed Feb 11 07:56:24 PM UTC 2026

@@ -1,0 +1,13 @@
+PMF reproduction result
+Dataset: miniImageNet
+Setting: 5-way 1-shot
+Episodes: 600
+Mean Accuracy: 93.26
+95% CI: ±0.47
+Eval JobID: 2303952
+Train JobID: 2224852
+Backbone: DINO-small (ViT-S/16)
+Epochs: 100
+LR: 5e-5
+FP16: True
+Date: Fri Feb 13 02:27:33 PM UTC 2026

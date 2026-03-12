@@ -1,0 +1,2 @@
+main.py --output /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/cifar_fs/5shot/eval/2303948 --dataset cifar_fs --epoch 100 --lr 5e-5 --arch dino_small_patch16 --device cuda:0 --nSupport 5 --fp16 --resume /home/u5hv/frixos.u5hv/bsc-dissertation-lora-cdfsl/logs/pmf/cifar_fs/5shot/train/2186916/best.pth --nEpisode 600 --eval
+{"n_ways": 5.0, "n_imgs": 100.0, "acc1": 92.43555808385213, "acc5": 100.0, "loss": 0.2299506473603348, "acc_std": 6.186604976654053, "epoch": -1}

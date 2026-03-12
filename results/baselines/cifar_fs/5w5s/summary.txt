@@ -1,0 +1,13 @@
+PMF reproduction result
+Dataset: CIFAR-FS
+Setting: 5-way 5-shot
+Episodes: 600
+Mean Accuracy: 92.44
+95% CI: ±0.49
+Eval JobID: 2303948
+Train JobID: 2186916
+Backbone: DINO-small (ViT-S/16)
+Epochs: 100
+LR: 5e-5
+FP16: True
+Date: Fri Feb 13 02:27:29 PM UTC 2026

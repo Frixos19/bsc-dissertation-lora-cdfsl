@@ -1,0 +1,17 @@
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+
+# Experiment tracking
+wandb>=0.15.0
+tensorboard>=2.13.0
+
+# Configuration
+pyyaml>=6.0
+
+# Utilities
+tqdm>=4.65.0
+matplotlib>=3.7.0
+pandas>=2.0.0
+pillow>=9.5.0
