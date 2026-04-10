@@ -6,6 +6,7 @@ import torch
 import torch.backends.cudnn as cudnn
 import json
 
+from copy import deepcopy
 from pathlib import Path
 from tabulate import tabulate
 
@@ -14,6 +15,7 @@ import utils.deit_util as utils
 from datasets import get_sets
 from utils.args import get_args_parser
 from models import get_model
+from models.lora import inject_lora, eject_lora
 from datasets import get_loaders
 
 
@@ -96,7 +98,8 @@ def main(args):
 
         # validate lr
         best_lr = args.ada_lr
-        if args.deploy == 'finetune':
+        best_r = getattr(args, 'lora_r', None)
+        if args.deploy in ['finetune', 'finetune_lora']:
             print("Start selecting the best lr...")
             best_acc = 0
             for lr in [0, 0.0001, 0.001, 0.01]:
@@ -110,17 +113,44 @@ def main(args):
             model_without_ddp.lr = best_lr
             print(f"### Selected lr = {best_lr}")
 
+        elif args.deploy == 'finetune_lora_adaptive':
+            print("Start adaptive LoRA search (r x lr)...")
+            best_acc = 0
+            for r in [2, 4, 8, 16]:
+                eject_lora(model_without_ddp.backbone)
+                inject_lora(model_without_ddp.backbone, r, args.lora_alpha)
+                model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
+                for lr in [0, 0.0001, 0.001, 0.01]:
+                    torch.manual_seed(1234)
+                    np.random.seed(1234)
+                    random.seed(1234)
+                    model_without_ddp.lr = lr
+                    test_stats = evaluate(data_loader_val, model, criterion, device, seed=1234, ep=5)
+                    acc = test_stats['acc1']
+                    print(f"*r={r}, lr={lr}: acc1={acc}")
+                    if acc > best_acc:
+                        best_acc = acc
+                        best_lr = lr
+                        best_r = r
+            # set best config for final eval
+            eject_lora(model_without_ddp.backbone)
+            inject_lora(model_without_ddp.backbone, best_r, args.lora_alpha)
+            model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
+            model_without_ddp.lr = best_lr
+            print(f"### Selected r={best_r}, lr={best_lr}") 
+
 
         # final classification
         data_loader_val.generator.manual_seed(args.seed + 10000)
         test_stats = evaluate(data_loader_val, model, criterion, device)
-        var_accs[domain] = (test_stats['acc1'], test_stats['acc_std'], best_lr)
+        var_accs[domain] = (test_stats['acc1'], test_stats['acc_std'], best_lr, best_r)
 
         print(f"{domain}: acc1 on {len(data_loader_val.dataset)} test images: {test_stats['acc1']:.1f}%")
 
         if args.output_dir and utils.is_main_process():
             test_stats['domain'] = args.test_sources[0]
             test_stats['lr'] = best_lr
+            test_stats['lora_r'] = best_r
             with (output_dir / f"log_test_{args.deploy}_{args.train_tag}.txt").open("a") as f:
                 f.write(json.dumps(test_stats) + "\n")
 
@@ -129,14 +159,15 @@ def main(args):
         rows = []
         for dataset_name in datasets:
             row = [dataset_name]
-            acc, std, lr = var_accs[dataset_name]
+            acc, std, lr, r = var_accs[dataset_name]
             conf = (1.96 * std) / np.sqrt(len(data_loader_val.dataset))
             row.append(f"{acc:0.2f} +- {conf:0.2f}")
             row.append(f"{lr}")
+            row.append(f"{r}" if r is not None else "-")
             rows.append(row)
         np.save(os.path.join(output_dir, f'test_results_{args.deploy}_{args.train_tag}.npy'), {'rows': rows})
 
-        table = tabulate(rows, headers=['Domain', args.arch, 'lr'], floatfmt=".2f")
+        table = tabulate(rows, headers=['Domain', args.arch, 'lr', 'lora_r'], floatfmt=".2f")
         print(table)
         print("\n")
 

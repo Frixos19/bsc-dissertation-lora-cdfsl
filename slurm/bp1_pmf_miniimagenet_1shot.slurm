@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:rtx_3090:1
-#SBATCH --time=12:00:00
+#SBATCH --gres=gpu:1
+#SBATCH --time=24:00:00
 #SBATCH --output=logs/slurm_%x_%j.out
 #SBATCH --error=logs/slurm_%x_%j.err
 
@@ -35,6 +35,7 @@ mkdir -p "$OUTDIR"
 echo "PMF_DIR=$PMF_DIR"
 echo "OUTDIR=$OUTDIR"
 
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
 cd "$PMF_DIR"
 
 python main.py \

@@ -111,6 +111,8 @@ def get_args_parser():
                         help='color, offset, offset_h, offset_v, translation, cutout')
     parser.add_argument('--lora_r', default=4, type=int, help='LoRA rank')
     parser.add_argument('--lora_alpha', default=1, type=float, help='LoRA scaling factor')
+    parser.add_argument('--lora_target', nargs='+', default=['qkv'], choices=['qkv', 'proj', 'mlp'], 
+                        help='LoRA insertion targets (one or more of: qkv, proj, mlp)')
 
     # Other model parameters
     parser.add_argument('--img-size', default=224, type=int, help='images input size')

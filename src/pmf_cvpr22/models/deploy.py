@@ -390,137 +390,96 @@ class ProtoNet_AdaTok_EntMin(ProtoNet):
         return logits
 
 class ProtoNet_LoRA_Finetune(ProtoNet):
-    def __init__(self, backbone, r=4, lora_alpha=1, num_iters=50, aug_prob=0.9,
-                 aug_types=['color', 'translation'], lr_lst=[0.01, 0.001, 0.0001]):
+    def __init__(self, backbone, r=4, lora_alpha=1, num_iters=50, lr=5e-2,
+                 aug_prob=0.9, aug_types=['color', 'translation'], targets=('qkv',)):
         super().__init__(backbone)
         self.num_iters = num_iters
-        self.lr_lst = lr_lst
+        self.lr = lr
         self.aug_types = aug_types
         self.aug_prob = aug_prob
 
-        for param in self.parameters():
-            param.requires_grad = False
+        inject_lora(backbone, r, lora_alpha, targets)
+        self.backbone_state = deepcopy(self.backbone.state_dict())
 
-        inject_lora(backbone, r, lora_alpha)
+    def load_state_dict(self, state_dict, strict=True):
+        _REMAP = {
+            'attn.qkv.weight':  'attn.qkv.linear.weight',
+            'attn.qkv.bias':    'attn.qkv.linear.bias',
+            'attn.proj.weight': 'attn.proj.linear.weight',
+            'attn.proj.bias':   'attn.proj.linear.bias',
+            'mlp.fc1.weight':   'mlp.fc1.linear.weight',
+            'mlp.fc1.bias':     'mlp.fc1.linear.bias',
+            'mlp.fc2.weight':   'mlp.fc2.linear.weight',
+            'mlp.fc2.bias':     'mlp.fc2.linear.bias',
+        }
+        remapped = {}
+        for k, v in state_dict.items():
+            for old, new in _REMAP.items():
+                if k.endswith(old):
+                    k = k[:-len(old)] + new
+                    break
+            remapped[k] = v
 
-        state_dict = backbone.state_dict()
-        self.backbone_state = deepcopy(state_dict)
+        super().load_state_dict(remapped, strict=False)
+        self.backbone_state = deepcopy(self.backbone.state_dict())
 
-    def forward(self, supp_x, supp_y, qry_x):
+    def forward(self, supp_x, supp_y, x):
         """
         supp_x.shape = [B, nSupp, C, H, W]
         supp_y.shape = [B, nSupp]
-        qry_x.shape = [B, nQry, C, H, W]
+        x.shape = [B, nQry, C, H, W]
         """
+        # reset backbone and LoRA weights
+        self.backbone.load_state_dict(self.backbone_state, strict=True)
+
+        if self.lr == 0:
+            return super().forward(supp_x, supp_y, x)
+
         B, nSupp, C, H, W = supp_x.shape
-        num_classes = supp_y.max() + 1 # NOTE: assume B==1
-        device = qry_x.device
+        num_classes = supp_y.max() + 1
+        device = x.device
 
         criterion = nn.CrossEntropyLoss()
         supp_x = supp_x.view(-1, C, H, W)
-        qry_x = qry_x.view(-1, C, H, W)
-        supp_y_1hot = F.one_hot(supp_y, num_classes).transpose(1, 2) # B, nC, nSupp
+        x = x.view(-1, C, H, W)
+        supp_y_1hot = F.one_hot(supp_y, num_classes).transpose(1, 2)
         supp_y = supp_y.view(-1)
 
-        def single_step(z, mode=True, x=None, y=None, y_1hot=None):
-            '''
-            z = Aug(supp_x) or qry_x
-            global vars: supp_x, supp_y, supp_y_1hot
-            '''
-            with torch.set_grad_enabled(mode):
-                # recalculate prototypes from supp_x with updated backbone
-                proto_f = self.backbone.forward(x).unsqueeze(0)
-
-                if y_1hot is None:
-                    prototypes = proto_f
-                else:
-                    prototypes = torch.bmm(y_1hot.float(), proto_f) # B, nC, d
-                    prototypes = prototypes / y_1hot.sum(dim=2, keepdim=True) # NOTE: may div 0
-
-                # compute feature for z
-                feat = self.backbone.forward(z)
-                feat = feat.view(B, z.shape[0], -1) # B, nQry, d
-
-                # classification
-                logits = self.cos_classifier(prototypes, feat) # B, nQry, nC
-                loss = None
-
-                if mode: # if enable grad, compute loss
-                    loss = criterion(logits.view(len(y), -1), y)
-
-            return logits, loss
-
-        # load trained weights
-        self.backbone.load_state_dict(self.backbone_state, strict=True)
-        reset_lora(self.backbone)
-
-        #zz = DiffAugment(supp_x, ["color", "offset", "offset_h", "offset_v", "translation", "cutout"], 1., detach=True)
-        proto_y, proto_i = unique_indices(supp_y)
-        proto_x = supp_x[proto_i]
-        zz_i = np.setdiff1d(range(len(supp_x)), proto_i.cpu().numpy())
-        zz_x = supp_x[zz_i]
-        zz_y = supp_y[zz_i]
-
-        best_lr = 0
-        max_acc1 = 0
-
-        if len(zz_y) > 0:
-            # eval non-finetuned weights (lr=0)
-            logits, _ = single_step(zz_x, False, x=proto_x)
-            max_acc1 = accuracy(logits.view(len(zz_y), -1), zz_y, topk=(1,))[0]
-            print(f'## *lr = 0: acc1 = {max_acc1}\n')
-
-            for lr in self.lr_lst:
-                # create optimizer
-                lora_params = [p for n, p in self.backbone.named_parameters() if 'lora_' in n]
-                opt = torch.optim.Adam(lora_params,
-                                       lr=lr,
-                                       betas=(0.9, 0.999),
-                                       weight_decay=0.)
-
-                # main loop
-                _num_iters = 50
-                pbar = tqdm(range(_num_iters)) if is_main_process() else range(_num_iters)
-                for i in pbar:
-                    opt.zero_grad()
-                    z = DiffAugment(proto_x, self.aug_types, self.aug_prob, detach=True)
-                    _, loss = single_step(z, True, x=proto_x, y=proto_y)
-                    loss.backward()
-                    opt.step()
-                    if is_main_process():
-                        pbar.set_description(f'     << lr = {lr}: loss = {loss.item()}')
-
-                logits, _ = single_step(zz_x, False, x=proto_x)
-                acc1 = accuracy(logits.view(len(zz_y), -1), zz_y, topk=(1,))[0]
-                print(f'## *lr = {lr}: acc1 = {acc1}\n')
-
-                if acc1 > max_acc1:
-                    max_acc1 = acc1
-                    best_lr = lr
-
-                # reset backbone state
-                self.backbone.load_state_dict(self.backbone_state, strict=True)
-
-        print(f'***Best lr = {best_lr} with acc1 = {max_acc1}.\nStart final loop...\n')
-
-        # create optimizer
+        # only optimise LoRA parameters
         lora_params = [p for n, p in self.backbone.named_parameters() if 'lora_' in n]
         opt = torch.optim.Adam(lora_params,
-                                lr=best_lr,
-                                betas=(0.9, 0.999),
-                                weight_decay=0.)
+                               lr=self.lr,
+                               betas=(0.9, 0.999),
+                               weight_decay=0.)
+
+        def single_step(z, mode=True):
+            with torch.set_grad_enabled(mode):
+                supp_f = self.backbone.forward(supp_x)
+                supp_f = supp_f.view(B, nSupp, -1)
+                prototypes = torch.bmm(supp_y_1hot.float(), supp_f)
+                prototypes = prototypes / supp_y_1hot.sum(dim=2, keepdim=True)
+
+                feat = self.backbone.forward(z)
+                feat = feat.view(B, z.shape[0], -1)
+
+                logits = self.cos_classifier(prototypes, feat)
+                loss = None
+
+                if mode:
+                    loss = criterion(logits.view(B*nSupp, -1), supp_y)
+
+            return logits, loss
 
         # main loop
         pbar = tqdm(range(self.num_iters)) if is_main_process() else range(self.num_iters)
         for i in pbar:
             opt.zero_grad()
             z = DiffAugment(supp_x, self.aug_types, self.aug_prob, detach=True)
-            _, loss = single_step(z, True, x=supp_x, y=supp_y, y_1hot=supp_y_1hot)
+            _, loss = single_step(z, True)
             loss.backward()
             opt.step()
             if is_main_process():
-                pbar.set_description(f'    >> lr = {best_lr}: loss = {loss.item()}')
+                pbar.set_description(f'lr{self.lr}, nSupp{nSupp}: loss = {loss.item()}')
 
-        logits, _ = single_step(qry_x, False, x=supp_x, y_1hot=supp_y_1hot) # supp_x has to pair with y_1hot
-
+        logits, _ = single_step(x, False)
         return logits

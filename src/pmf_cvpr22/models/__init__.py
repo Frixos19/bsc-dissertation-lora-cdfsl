@@ -188,7 +188,9 @@ def get_model(args):
         model = ProtoNet_AdaTok_EntMin(backbone, args.num_adapters,
                                        args.ada_steps, args.ada_lr)
     elif args.deploy == 'finetune_lora':
-        model = ProtoNet_LoRA_Finetune(backbone, args.lora_r, args.lora_alpha, args.ada_steps, args.aug_prob, args.aug_types)
+        model = ProtoNet_LoRA_Finetune(backbone, args.lora_r, args.lora_alpha, args.ada_steps, args.ada_lr, args.aug_prob, args.aug_types, targets=args.lora_target)
+    elif args.deploy == 'finetune_lora_adaptive':
+        model = ProtoNet_LoRA_Finetune(backbone, args.lora_r, args.lora_alpha, args.ada_steps, args.ada_lr, args.aug_prob, args.aug_types, targets=args.lora_target)
     else:
         raise ValueError(f'deploy method {args.deploy} is not supported.')
     return model
