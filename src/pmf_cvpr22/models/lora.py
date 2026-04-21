@@ -26,15 +26,26 @@ class LoRALinear(nn.Module):
         # initialise
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
         nn.init.zeros_(self.lora_B)
+        self.merged = False
+
+    def merge_weights(self):
+        # absorb LoRA update into frozen weight: W' = W₀ + scaling * B @ A
+        # after this, forward is a plain linear — no extra computation
+        with torch.no_grad():
+            self.linear.weight.data += self.scaling * (self.lora_B @ self.lora_A)
+        self.lora_A.data.zero_()
+        self.lora_B.data.zero_()
+        self.merged = True
         
     def reset(self):
-        # reinitialise lora_A and lora_B back to starting values
-        nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
-        nn.init.zeros_(self.lora_B)
+        self.merged = False
         
     def forward(self, x):
         # compute the original linear output (frozen)
         result = self.linear(x)
+
+        if self.merged:
+            return result
 
         # compute the lora update: x @ lora_A.T @ lora_B.T * scaling
         DeltaW = x @ self.lora_A.T @ self.lora_B.T * self.scaling
@@ -58,6 +69,12 @@ def inject_lora(model, r, lora_alpha=1, targets=('qkv',)):
             block.mlp.fc1 = LoRALinear(block.mlp.fc1, r, lora_alpha).to(device)
             device = block.mlp.fc2.weight.device
             block.mlp.fc2 = LoRALinear(block.mlp.fc2, r, lora_alpha).to(device)
+
+def merge_lora(model):
+    # walk all modules and merge any LoRALinear layers
+    for module in model.modules():
+        if isinstance(module, LoRALinear):
+            module.merge_weights()
 
 def reset_lora(model):
     # loop through all modules in the model

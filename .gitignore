@@ -72,3 +72,5 @@ slurm-*.err
 # Keep empty dirs
 # =========================
 !.gitkeep
+core
+slurm/bluepebble/

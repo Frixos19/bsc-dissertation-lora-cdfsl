@@ -8,7 +8,7 @@ from tqdm import tqdm
 from timm.utils import accuracy
 from .protonet import ProtoNet
 from .utils import trunc_normal_, DiffAugment
-from .lora import inject_lora, reset_lora
+from .lora import inject_lora, reset_lora, merge_lora
 
 
 def is_dist_avail_and_initialized():
@@ -397,21 +397,31 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
         self.lr = lr
         self.aug_types = aug_types
         self.aug_prob = aug_prob
+        self.targets = targets
 
         inject_lora(backbone, r, lora_alpha, targets)
         self.backbone_state = deepcopy(self.backbone.state_dict())
 
     def load_state_dict(self, state_dict, strict=True):
-        _REMAP = {
-            'attn.qkv.weight':  'attn.qkv.linear.weight',
-            'attn.qkv.bias':    'attn.qkv.linear.bias',
-            'attn.proj.weight': 'attn.proj.linear.weight',
-            'attn.proj.bias':   'attn.proj.linear.bias',
-            'mlp.fc1.weight':   'mlp.fc1.linear.weight',
-            'mlp.fc1.bias':     'mlp.fc1.linear.bias',
-            'mlp.fc2.weight':   'mlp.fc2.linear.weight',
-            'mlp.fc2.bias':     'mlp.fc2.linear.bias',
-        }
+        _REMAP = {}
+        if 'qkv' in self.targets:
+            _REMAP.update({
+                'attn.qkv.weight': 'attn.qkv.linear.weight',
+                'attn.qkv.bias':   'attn.qkv.linear.bias',
+            })
+        if 'proj' in self.targets:
+            _REMAP.update({
+                'attn.proj.weight': 'attn.proj.linear.weight',
+                'attn.proj.bias':   'attn.proj.linear.bias',
+            })
+        if 'mlp' in self.targets:
+            _REMAP.update({
+                'mlp.fc1.weight': 'mlp.fc1.linear.weight',
+                'mlp.fc1.bias':   'mlp.fc1.linear.bias',
+                'mlp.fc2.weight': 'mlp.fc2.linear.weight',
+                'mlp.fc2.bias':   'mlp.fc2.linear.bias',
+            })
+
         remapped = {}
         for k, v in state_dict.items():
             for old, new in _REMAP.items():
@@ -420,9 +430,40 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
                     break
             remapped[k] = v
 
-        super().load_state_dict(remapped, strict=False)
-        self.backbone_state = deepcopy(self.backbone.state_dict())
+        result = super().load_state_dict(remapped, strict=False)
 
+        expected_missing = set()
+        for i in range(len(self.backbone.blocks)):
+            if 'qkv' in self.targets:
+                expected_missing |= {
+                    f'backbone.blocks.{i}.attn.qkv.lora_A',
+                    f'backbone.blocks.{i}.attn.qkv.lora_B',
+                }
+            if 'proj' in self.targets:
+                expected_missing |= {
+                    f'backbone.blocks.{i}.attn.proj.lora_A',
+                    f'backbone.blocks.{i}.attn.proj.lora_B',
+                }
+            if 'mlp' in self.targets:
+                expected_missing |= {
+                    f'backbone.blocks.{i}.mlp.fc1.lora_A',
+                    f'backbone.blocks.{i}.mlp.fc1.lora_B',
+                    f'backbone.blocks.{i}.mlp.fc2.lora_A',
+                    f'backbone.blocks.{i}.mlp.fc2.lora_B',
+                }
+
+        bad_missing = set(result.missing_keys) - expected_missing
+        bad_unexpected = set(result.unexpected_keys)
+
+        if strict and (bad_missing or bad_unexpected):
+            raise RuntimeError(
+                f"Bad checkpoint load. Missing: {sorted(bad_missing)} | "
+                f"Unexpected: {sorted(bad_unexpected)}"
+            )
+
+        self.backbone_state = deepcopy(self.backbone.state_dict())
+        return result
+        
     def forward(self, supp_x, supp_y, x):
         """
         supp_x.shape = [B, nSupp, C, H, W]
@@ -431,6 +472,7 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
         """
         # reset backbone and LoRA weights
         self.backbone.load_state_dict(self.backbone_state, strict=True)
+        reset_lora(self.backbone)
 
         if self.lr == 0:
             return super().forward(supp_x, supp_y, x)
@@ -481,5 +523,6 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
             if is_main_process():
                 pbar.set_description(f'lr{self.lr}, nSupp{nSupp}: loss = {loss.item()}')
 
+        merge_lora(self.backbone)
         logits, _ = single_step(x, False)
         return logits

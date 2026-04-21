@@ -121,7 +121,7 @@ def main(args):
             checkpoint = torch.load(args.resume, map_location='cpu', weights_only=False)
 
         if args.deploy == 'finetune_lora':
-            model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
+            model_without_ddp.load_state_dict(checkpoint['model'], strict=True)
         else:
             model_without_ddp.load_state_dict(checkpoint['model'])
 

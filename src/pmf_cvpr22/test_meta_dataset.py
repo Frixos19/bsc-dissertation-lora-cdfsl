@@ -116,10 +116,15 @@ def main(args):
         elif args.deploy == 'finetune_lora_adaptive':
             print("Start adaptive LoRA search (r x lr)...")
             best_acc = 0
-            for r in [2, 4, 8, 16]:
+            for r in [1, 2, 4, 8, 16]:
+                torch.manual_seed(1234)
+                np.random.seed(1234)
+                random.seed(1234)
+                model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
                 eject_lora(model_without_ddp.backbone)
-                inject_lora(model_without_ddp.backbone, r, args.lora_alpha)
+                inject_lora(model_without_ddp.backbone, r, r, targets=args.lora_target)
                 model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
+
                 for lr in [0, 0.0001, 0.001, 0.01]:
                     torch.manual_seed(1234)
                     np.random.seed(1234)
@@ -133,8 +138,13 @@ def main(args):
                         best_lr = lr
                         best_r = r
             # set best config for final eval
+            torch.manual_seed(1234)
+            np.random.seed(1234)
+            random.seed(1234)
+
+            model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
             eject_lora(model_without_ddp.backbone)
-            inject_lora(model_without_ddp.backbone, best_r, args.lora_alpha)
+            inject_lora(model_without_ddp.backbone, best_r, best_r, targets=args.lora_target)
             model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
             model_without_ddp.lr = best_lr
             print(f"### Selected r={best_r}, lr={best_lr}") 
