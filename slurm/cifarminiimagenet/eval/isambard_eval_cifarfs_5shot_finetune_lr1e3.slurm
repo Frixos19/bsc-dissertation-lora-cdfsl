@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval_mini_1s_vanilla
+#SBATCH --job-name=eval_cifarfs_5s_finetune_lr1e3
 #SBATCH --partition=workq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -24,9 +24,9 @@ module load cuda/12.6
 
 REPO_ROOT="$HOME/bsc-dissertation-lora-cdfsl"
 PMF_DIR="$REPO_ROOT/src/pmf_cvpr22"
-TRAIN_JOBID="3764575"
-CKPT="/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/pmf/mini/1shot/train/${TRAIN_JOBID}/best.pth"
-OUTDIR="/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/pmf/mini/1shot/eval_vanilla/${SLURM_JOB_ID}"
+TRAIN_JOBID="3764574"
+CKPT="/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/pmf/cifarfs/5shot/train/${TRAIN_JOBID}/best.pth"
+OUTDIR="/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/pmf/cifarfs/5shot/eval_finetune/${SLURM_JOB_ID}"
 
 mkdir -p "$OUTDIR"
 test -d "$PMF_DIR" && echo "PMF_DIR ok" || { echo "PMF_DIR FAILED"; exit 1; }
@@ -36,16 +36,20 @@ cd "$PMF_DIR"
 
 python main.py \
   --output "$OUTDIR" \
-  --dataset mini_imagenet \
+  --dataset cifar_fs \
   --epoch 100 \
   --lr 5e-5 \
   --arch dino_small_patch16 \
-  --deploy vanilla \
+  --deploy finetune \
   --device cuda:0 \
-  --nSupport 1 \
+  --nSupport 5 \
   --fp16 \
   --resume "$CKPT" \
   --nEpisode 600 \
-  --eval
+  --eval \
+  --ada_steps 50 \
+  --ada_lr 0.001 \
+  --aug_prob 0.9 \
+  --aug_types color translation
 
 echo "End: $(date)"
