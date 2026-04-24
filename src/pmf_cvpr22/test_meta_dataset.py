@@ -116,7 +116,7 @@ def main(args):
         elif args.deploy == 'finetune_lora_adaptive':
             print("Start adaptive LoRA search (r x lr)...")
             best_acc = 0
-            for r in [1, 2, 4, 8, 16]:
+            for r in [1, 2, 4, 8, 16, 32, 64]:
                 torch.manual_seed(1234)
                 np.random.seed(1234)
                 random.seed(1234)
