@@ -115,13 +115,18 @@ def main(args):
 
         elif args.deploy == 'finetune_lora_adaptive':
             print("Start adaptive LoRA search (r x lr)...")
-            best_acc = 0
-            for r in [1, 2, 4, 8, 16, 32, 64]:
+            all_results = []
+            r_candidates = [1, 2, 4, 8, 16] if args.lora_r_max == 16 else [1, 2, 4, 8, 16, 32, 64]
+            model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
+            eject_lora(model_without_ddp.backbone)
+            base_backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
+
+            for r in r_candidates:
                 torch.manual_seed(1234)
                 np.random.seed(1234)
                 random.seed(1234)
-                model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
                 eject_lora(model_without_ddp.backbone)
+                model_without_ddp.backbone.load_state_dict(base_backbone_state, strict=True)
                 inject_lora(model_without_ddp.backbone, r, r, targets=args.lora_target)
                 model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
 
@@ -133,21 +138,36 @@ def main(args):
                     test_stats = evaluate(data_loader_val, model, criterion, device, seed=1234, ep=5)
                     acc = test_stats['acc1']
                     print(f"*r={r}, lr={lr}: acc1={acc}")
-                    if acc > best_acc:
-                        best_acc = acc
-                        best_lr = lr
-                        best_r = r
+                    all_results.append((r, lr, acc))
+
+            # parsimony tiebreak: smallest rank within epsilon of best, then best lr for that rank
+            best_acc = max(a for _, _, a in all_results)
+            if args.lora_epsilon == 0.0:
+                # pure argmax: no tiebreak
+                best_r, best_lr, best_selected_acc = max(all_results, key=lambda x: x[2])
+            else:
+                # keep only configs within epsilon of best accuracy
+                candidates = [(r, lr, a) for r, lr, a in all_results if best_acc - a <= args.lora_epsilon]
+                
+                # find smallest rank among candidates
+                best_r = min(r for r, _, _ in candidates)
+                
+                # among configs with that rank, pick the one with highest accuracy
+                best_lr, best_selected_acc = max(
+                    ((lr, a) for r, lr, a in candidates if r == best_r),
+                    key=lambda x: x[1]
+                )
+            print(f"### Selected r={best_r}, lr={best_lr}, val_acc={best_selected_acc:.3f}")
+
             # set best config for final eval
             torch.manual_seed(1234)
             np.random.seed(1234)
             random.seed(1234)
-
-            model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
             eject_lora(model_without_ddp.backbone)
+            model_without_ddp.backbone.load_state_dict(base_backbone_state, strict=True)
             inject_lora(model_without_ddp.backbone, best_r, best_r, targets=args.lora_target)
             model_without_ddp.backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
             model_without_ddp.lr = best_lr
-            print(f"### Selected r={best_r}, lr={best_lr}") 
 
 
         # final classification

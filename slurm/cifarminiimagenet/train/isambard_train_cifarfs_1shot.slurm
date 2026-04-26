@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
-#SBATCH --output=/lus/lfs1aip2/scratch/b6aq/frixos.b6aq/bsc-dissertation-lora-cdfsl/logs/slurm_%x_%j.out
-#SBATCH --error=/lus/lfs1aip2/scratch/b6aq/frixos.b6aq/bsc-dissertation-lora-cdfsl/logs/slurm_%x_%j.err
+#SBATCH --output=/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/slurm_%x_%j.out
+#SBATCH --error=/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/slurm_%x_%j.err
 
 set -euo pipefail
 echo "Host: $(hostname)"
@@ -24,7 +24,7 @@ module load cuda/12.6
 
 REPO_ROOT="$HOME/bsc-dissertation-lora-cdfsl"
 PMF_DIR="$REPO_ROOT/src/pmf_cvpr22"
-OUTDIR="/lus/lfs1aip2/scratch/b6aq/frixos.b6aq/bsc-dissertation-lora-cdfsl/logs/pmf/cifarfs/1shot/train/${SLURM_JOB_ID}"
+OUTDIR="/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/pmf/cifarfs/1shot/train/${SLURM_JOB_ID}"
 
 mkdir -p "$OUTDIR"
 test -d "$PMF_DIR" && echo "PMF_DIR ok" || { echo "PMF_DIR FAILED"; exit 1; }

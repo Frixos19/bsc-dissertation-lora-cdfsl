@@ -4,9 +4,9 @@
 #SBATCH --time=04:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --output=/lus/lfs1aip2/scratch/b6aq/frixos.b6aq/bsc-dissertation-lora-cdfsl/logs/extract_meta_dataset_%j.out
+#SBATCH --output=/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/bsc-dissertation-lora-cdfsl/logs/extract_meta_dataset_%j.out
 
-DATA=/lus/lfs1aip2/scratch/b6aq/frixos.b6aq/data/meta_dataset_h5
+DATA=/lus/lfs1aip2/scratch/u6hz/frixos.u6hz/data/meta_dataset_h5
 
 cd $DATA
 

@@ -113,7 +113,10 @@ def get_args_parser():
     parser.add_argument('--lora_alpha', default=1, type=float, help='LoRA scaling factor')
     parser.add_argument('--lora_target', nargs='+', default=['qkv'], choices=['qkv', 'proj', 'mlp'], 
                         help='LoRA insertion targets (one or more of: qkv, proj, mlp)')
-
+    parser.add_argument('--lora_epsilon', type=float, default=0.0,
+                         help='Parsimony tiebreak: select smallest r within epsilon of best validation accuracy')
+    parser.add_argument('--lora_r_max', type=int, default=16, choices=[16, 64],
+                        help='Maximum rank in adaptive search (16 or 64)')
     # Other model parameters
     parser.add_argument('--img-size', default=224, type=int, help='images input size')
 
