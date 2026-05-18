@@ -116,15 +116,21 @@ def main(args):
         elif args.deploy == 'finetune_lora_adaptive':
             print("Start adaptive LoRA search (r x lr)...")
             all_results = []
-            r_candidates = [1, 2, 4, 8, 16] if args.lora_r_max == 16 else [1, 2, 4, 8, 16, 32, 64]
+            r_candidates = [1, 2, 4, 8, 16, 32, 64]
+
+            # eject any existing LoRA and save a clean backbone state 
+            # all rank candidates are injected on top of this same base
             model_without_ddp.backbone.load_state_dict(model_without_ddp.backbone_state, strict=True)
             eject_lora(model_without_ddp.backbone)
             base_backbone_state = deepcopy(model_without_ddp.backbone.state_dict())
 
             for r in r_candidates:
+                # reset seeds so every (r, lr) candidate sees identical validation episodes
                 torch.manual_seed(1234)
                 np.random.seed(1234)
                 random.seed(1234)
+
+                # swap in new rank - eject previous, restore clean base, inject with rank r
                 eject_lora(model_without_ddp.backbone)
                 model_without_ddp.backbone.load_state_dict(base_backbone_state, strict=True)
                 inject_lora(model_without_ddp.backbone, r, r, targets=args.lora_target)
@@ -140,7 +146,9 @@ def main(args):
                     print(f"*r={r}, lr={lr}: acc1={acc}")
                     all_results.append((r, lr, acc))
 
-            # parsimony tiebreak: smallest rank within epsilon of best, then best lr for that rank
+            # epsilon: among all configs within epsilon of best validation accuracy,
+            # select the smallest rank - trades negligible accuracy for parameter efficiency
+            # epsilon=0 is pure argmax 
             best_acc = max(a for _, _, a in all_results)
             if args.lora_epsilon == 0.0:
                 # pure argmax: no tiebreak
@@ -159,7 +167,7 @@ def main(args):
                 )
             print(f"### Selected r={best_r}, lr={best_lr}, val_acc={best_selected_acc:.3f}")
 
-            # set best config for final eval
+            # re-inject with winning rank and set winning lr for final evaluation
             torch.manual_seed(1234)
             np.random.seed(1234)
             random.seed(1234)

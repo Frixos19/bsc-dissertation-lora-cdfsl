@@ -390,6 +390,8 @@ class ProtoNet_AdaTok_EntMin(ProtoNet):
         return logits
 
 class ProtoNet_LoRA_Finetune(ProtoNet):
+    """ProtoNet with LoRA adaptation at meta-test time. Replaces full fine-tuning
+    with low-rank updates to selected transformer modules"""
     def __init__(self, backbone, r=4, lora_alpha=1, num_iters=50, lr=5e-2,
                  aug_prob=0.9, aug_types=['color', 'translation'], targets=('qkv',)):
         super().__init__(backbone)
@@ -399,10 +401,17 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
         self.aug_prob = aug_prob
         self.targets = targets
 
+        # inject LoRA into target modules and freeze all backbone parameters
         inject_lora(backbone, r, lora_alpha, targets)
+
+        # snapshot taken after injection so state includes lora_A and lora_B
+        # restored at the start of every episode to ensure ΔW=0 at init
         self.backbone_state = deepcopy(self.backbone.state_dict())
 
     def load_state_dict(self, state_dict, strict=True):
+        # the pre-trained checkpoint uses keys like attn.qkv.weight
+        # after LoRA injection the weight lives at attn.qkv.linear.weight
+        # remap checkpoint keys to match the new structure before loading
         _REMAP = {}
         if 'qkv' in self.targets:
             _REMAP.update({
@@ -430,8 +439,11 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
                     break
             remapped[k] = v
 
+        # strict=False because lora_A and lora_B don't exist in the checkpoint
         result = super().load_state_dict(remapped, strict=False)
 
+        # verify the only missing keys are the expected lora_A and lora_B 
+        # anything else missing indicates a genuine loading error
         expected_missing = set()
         for i in range(len(self.backbone.blocks)):
             if 'qkv' in self.targets:
@@ -461,6 +473,7 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
                 f"Unexpected: {sorted(bad_unexpected)}"
             )
 
+        # update backbone_state so episodes reset to the loaded checkpoint
         self.backbone_state = deepcopy(self.backbone.state_dict())
         return result
         
@@ -470,7 +483,7 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
         supp_y.shape = [B, nSupp]
         x.shape = [B, nQry, C, H, W]
         """
-        # reset backbone and LoRA weights
+        # restore meta-trained weights and reset merged flag for this episode
         self.backbone.load_state_dict(self.backbone_state, strict=True)
         reset_lora(self.backbone)
 
@@ -512,7 +525,8 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
 
             return logits, loss
 
-        # main loop
+        # 50-step adaptation loop
+        # backpropagate using cross-entropy loss into lora_A and lora_B only
         pbar = tqdm(range(self.num_iters)) if is_main_process() else range(self.num_iters)
         for i in pbar:
             opt.zero_grad()
@@ -523,6 +537,7 @@ class ProtoNet_LoRA_Finetune(ProtoNet):
             if is_main_process():
                 pbar.set_description(f'lr{self.lr}, nSupp{nSupp}: loss = {loss.item()}')
 
+        # merge LoRA update into W₀ before query inference - zero overhead at test time
         merge_lora(self.backbone)
         logits, _ = single_step(x, False)
         return logits

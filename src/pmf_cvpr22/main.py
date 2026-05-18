@@ -121,6 +121,7 @@ def main(args):
             checkpoint = torch.load(args.resume, map_location='cpu', weights_only=False)
 
         if args.deploy == 'finetune_lora':
+            # routes through ProtoNet_LoRA_Finetune.load_state_dict for checkpoint key remapping
             model_without_ddp.load_state_dict(checkpoint['model'], strict=True)
         else:
             model_without_ddp.load_state_dict(checkpoint['model'])

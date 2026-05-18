@@ -104,19 +104,18 @@ def get_args_parser():
     parser.add_argument("--deploy", type=str, default="vanilla",
                         help="Which few-shot model to be deployed for meta-testing.")
     parser.add_argument('--num_adapters', default=1, type=int, help='Number of adapter tokens')
-    parser.add_argument('--ada_steps', default=40, type=int, help='Number of feature adaptation steps')
+    parser.add_argument('--ada_steps', default=50, type=int, help='Number of feature adaptation steps')
     parser.add_argument('--ada_lr', default=5e-2, type=float, help='Learning rate of feature adaptation')
     parser.add_argument('--aug_prob', default=0.9, type=float, help='Probability of applying data augmentation during meta-testing')
     parser.add_argument('--aug_types', nargs="+", default=['color', 'translation'],
                         help='color, offset, offset_h, offset_v, translation, cutout')
+    # LoRA parameters
     parser.add_argument('--lora_r', default=4, type=int, help='LoRA rank')
     parser.add_argument('--lora_alpha', default=1, type=float, help='LoRA scaling factor')
     parser.add_argument('--lora_target', nargs='+', default=['qkv'], choices=['qkv', 'proj', 'mlp'], 
                         help='LoRA insertion targets (one or more of: qkv, proj, mlp)')
     parser.add_argument('--lora_epsilon', type=float, default=0.0,
-                         help='Parsimony tiebreak: select smallest r within epsilon of best validation accuracy')
-    parser.add_argument('--lora_r_max', type=int, default=16, choices=[16, 64],
-                        help='Maximum rank in adaptive search (16 or 64)')
+                         help='Select smallest r within epsilon of best validation accuracy')
     # Other model parameters
     parser.add_argument('--img-size', default=224, type=int, help='images input size')
 
